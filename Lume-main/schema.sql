@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS products (
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-    category TEXT NOT NULL CHECK (category IN ('scented', 'unscented', 'decorative', 'aromatherapy')),
+    category TEXT NOT NULL CHECK (category IN ('signature', 'seasonal', 'decorative', 'aromatherapy')),
     scent TEXT DEFAULT 'unscented',
     size TEXT DEFAULT 'medium' CHECK (size IN ('small', 'medium', 'large', 'x-large')),
     burn_time TEXT NOT NULL,
@@ -150,12 +150,13 @@ CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
 -- Seed Premium, High-End Handcrafted Artisan Candles
 INSERT INTO products (id, name, description, price, category, scent, size, burn_time, in_stock, stock_quantity, images, created_by) VALUES
+-- SIGNATURE COLLECTION
 (
   '11111111-1111-1111-1111-111111111111',
   'Santal & Wild Cardamom No. 04',
   'An evocative blend of smooth Australian sandalwood, warm crushed cardamom, and rich dark amber, hand-poured in a custom textured ceramic vessel. Designed to fill your space with a sophisticated, woody warmth.',
   32.00,
-  'scented',
+  'signature',
   'Santal & Cardamom',
   'medium',
   '50 Hours',
@@ -164,6 +165,80 @@ INSERT INTO products (id, name, description, price, category, scent, size, burn_
   ARRAY['https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=600&q=80'],
   '00000000-0000-0000-0000-000000000000'
 ),
+(
+  '44444444-4444-4444-4444-444444444444',
+  'Tahitian Vanilla Bean & Amberwood',
+  'A rich, decadent gourmand escape. Authentic Tahitian vanilla pods combined with warm amber resin, ground cinnamon bark, and fresh grated ginger. Creates a sweet, comforting, and deeply enveloping ambiance.',
+  34.00,
+  'signature',
+  'Tahitian Vanilla',
+  'large',
+  '65 Hours',
+  true,
+  25,
+  ARRAY['https://images.unsplash.com/photo-1572726729207-a78d6eed36d7?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+(
+  '77777777-7777-7777-7777-777777777777',
+  'Fig & Grounded Cedarwood No. 02',
+  'Grounded and sun-drenched. Earthy green fig leaves blended with ripe Mediterranean fig pulp, grounded by sweet cedarwood and dry vetiver. A clean, fresh woody scent reminiscent of warm summers.',
+  30.00,
+  'signature',
+  'Wild Fig & Cedar',
+  'medium',
+  '48 Hours',
+  true,
+  35,
+  ARRAY['https://images.unsplash.com/photo-1602872030219-cbf94801cb36?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+
+-- SEASONAL COLLECTION
+(
+  '88888888-8888-8888-8888-888888888888',
+  'Spiced Pumpkin & Chai Atelier',
+  'The essence of crisp autumn afternoons. A warm, spicy blend of toasted pumpkin, crushed clove buds, sweet nutmeg, and black tea leaves, finished with a smooth vanilla crema.',
+  36.00,
+  'seasonal',
+  'Spiced Pumpkin Chai',
+  'large',
+  '60 Hours',
+  true,
+  40,
+  ARRAY['https://images.unsplash.com/photo-1541256996761-85df2eff3139?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+(
+  '99999999-9999-9999-9999-999999999999',
+  'Winter Fir & Balsam Woods',
+  'Walk through a snowy evergreen forest. Features fresh-cut Siberian fir needles, cold mountain balsam, and grounding eucalyptus, sweetened slightly with a hint of warm red berries.',
+  34.00,
+  'seasonal',
+  'Siberian Fir & Balsam',
+  'medium',
+  '50 Hours',
+  true,
+  30,
+  ARRAY['https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+(
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+  'Summer Citrus & Coconut Nectar',
+  'A tropical paradise in a glass. Sun-ripened Tahitian lime, fresh squeezed grapefruit, and sweet coconut water, balanced beautifully with wild white jasmine and light musk.',
+  32.00,
+  'seasonal',
+  'Tahitian Lime & Coconut',
+  'medium',
+  '45 Hours',
+  true,
+  55,
+  ARRAY['https://images.unsplash.com/photo-1506806732259-39c2d0268443?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+
+-- AROMATHERAPY
 (
   '22222222-2222-2222-2222-222222222222',
   'French Lavender & Wild Thyme No. 07',
@@ -179,6 +254,36 @@ INSERT INTO products (id, name, description, price, category, scent, size, burn_
   '00000000-0000-0000-0000-000000000000'
 ),
 (
+  '66666666-6666-6666-6666-666666666666',
+  'Eucalyptus & Moroccan Mint Refresh',
+  'Invigorate and clarify your senses. A powerful, herbal combination of organic Moroccan mint leaves and crushed blue-gum eucalyptus branches. Perfect for clean mornings, bath-side luxury, and mental rejuvenation.',
+  30.00,
+  'aromatherapy',
+  'Moroccan Mint',
+  'medium',
+  '48 Hours',
+  true,
+  40,
+  ARRAY['https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+(
+  'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+  'Bergamot & Sweet Neroli Calm',
+  'Bright, solar, and calming. Cold-pressed Italian bergamot infused with sweet orange blossom neroli, wild rosemary, and a base of clean white musk. Designed to elevate mood and reduce tension.',
+  32.00,
+  'aromatherapy',
+  'Bergamot & Neroli',
+  'medium',
+  '50 Hours',
+  true,
+  45,
+  ARRAY['https://images.unsplash.com/photo-1612474000300-3bee73b5b6a7?auto=format&fit=crop&w=600&q=80'],
+  '00000000-0000-0000-0000-000000000000'
+),
+
+-- DECORATIVE
+(
   '33333333-3333-3333-3333-333333333333',
   'The Sculptural Bubble Grid Candle',
   'An architectural statement piece for the modern minimalist home. Hand-cast from clean, soot-free organic soy wax in an elegant geometric bubble matrix. Adds instant editorial texture to mantels and coffee tables.',
@@ -190,20 +295,6 @@ INSERT INTO products (id, name, description, price, category, scent, size, burn_
   true,
   60,
   ARRAY['https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=600&q=80'],
-  '00000000-0000-0000-0000-000000000000'
-),
-(
-  '44444444-4444-4444-4444-444444444444',
-  'Tahitian Vanilla Bean & Amberwood',
-  'A rich, decadent gourmand escape. Authentic Tahitian vanilla pods combined with warm amber resin, ground cinnamon bark, and fresh grated ginger. Creates a sweet, comforting, and deeply enveloping ambiance.',
-  34.00,
-  'scented',
-  'Tahitian Vanilla',
-  'large',
-  '65 Hours',
-  true,
-  25,
-  ARRAY['https://images.unsplash.com/photo-1572726729207-a78d6eed36d7?auto=format&fit=crop&w=600&q=80'],
   '00000000-0000-0000-0000-000000000000'
 ),
 (
@@ -221,17 +312,17 @@ INSERT INTO products (id, name, description, price, category, scent, size, burn_
   '00000000-0000-0000-0000-000000000000'
 ),
 (
-  '66666666-6666-6666-6666-666666666666',
-  'Eucalyptus & Moroccan Mint Refresh',
-  'Invigorate and clarify your senses. A powerful, herbal combination of organic Moroccan mint leaves and crushed blue-gum eucalyptus branches. Perfect for clean mornings, bath-side luxury, and mental rejuvenation.',
-  30.00,
-  'aromatherapy',
-  'Moroccan Mint',
-  'medium',
-  '48 Hours',
+  'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  'The Sculptural Venus Bust',
+  'Classical art re-imagined. Hand-poured from clean soy wax, this beautiful candle depicts a classical marble bust of Venus. A gorgeous conversation starter for bookshelves, sideboards, or artistic spaces.',
+  38.00,
+  'decorative',
+  'unscented',
+  'large',
+  '40 Hours',
   true,
-  40,
-  ARRAY['https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=600&q=80'],
+  20,
+  ARRAY['https://images.unsplash.com/photo-1605651202774-7d573df3f22d?auto=format&fit=crop&w=600&q=80'],
   '00000000-0000-0000-0000-000000000000'
 )
 ON CONFLICT (id) DO NOTHING;
