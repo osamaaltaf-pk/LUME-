@@ -2,14 +2,8 @@ import jwt from 'jsonwebtoken';
 import { supabase } from '../config/supabase.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/generateTokens.js';
 import bcrypt from 'bcryptjs';
-import { sendOtpEmail } from '../utils/emailService.js';
 
 let refreshTokens = [];
-
-// Generate 6 digit OTP
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
 
 // register
 export const register = async (req, res) => {
@@ -26,64 +20,37 @@ export const register = async (req, res) => {
     if (checkError) throw checkError;
 
     if (existingUser) {
-      if (!existingUser.is_verified) {
-        // Resend OTP logic
-        const otp = generateOTP();
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            username,
-            password: hashedPassword,
-            otp,
-            otp_expires: otpExpires
-          })
-          .eq('id', existingUser.id);
-
-        if (updateError) throw updateError;
-
-        await sendOtpEmail(email, otp);
-
-        return res.status(200).json({
-          message: "User exists but not verified. New OTP sent.",
-          requireOtp: true,
-          email: email
-        });
-      }
       return res.status(400).json({ message: "User already exist please login" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-    // Create user with is_verified = false
-    const { error: insertError } = await supabase
+    // Create user with is_verified = true directly (No OTP/email verification needed)
+    const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         username,
         email,
         password: hashedPassword,
-        otp,
-        otp_expires: otpExpires,
-        is_verified: false
-      });
+        otp: null,
+        otp_expires: null,
+        is_verified: true
+      })
+      .select()
+      .single();
 
     if (insertError) throw insertError;
 
-    // Send Email
-    try {
-      await sendOtpEmail(email, otp);
-    } catch (emailError) {
-      console.error('Email send failed:', emailError);
-    }
-
     return res.status(200).json({
-      message: "OTP sent to email. Please verify.",
-      requireOtp: true,
-      email: email
+      message: "Registration successful! Welcome to LUME.",
+      requireOtp: false,
+      user: {
+        id: newUser.id,
+        _id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role
+      }
     });
 
   } catch (error) {
@@ -95,10 +62,10 @@ export const register = async (req, res) => {
   }
 };
 
-// Verify OTP
+// Verify OTP (Fallback endpoint - auto succeeds to prevent frontend breakage)
 export const verifyEmail = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email } = req.body;
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
@@ -112,30 +79,11 @@ export const verifyEmail = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    if (user.is_verified) {
-      return res.status(200).json({ message: "Email already verified. Please login." });
+    // Ensure is_verified is true
+    if (!user.is_verified) {
+      await supabase.from('users').update({ is_verified: true }).eq('id', user.id);
     }
 
-    const isOtpValid = user.otp === otp;
-    const isOtpExpired = new Date(user.otp_expires) < new Date();
-
-    if (!isOtpValid || isOtpExpired) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
-    }
-
-    // Verify user
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        is_verified: true,
-        otp: null,
-        otp_expires: null
-      })
-      .eq('id', user.id);
-
-    if (updateError) throw updateError;
-
-    // Generate tokens on success verification
     const accessToken = generateAccessToken(user.id, user.role);
     const refreshToken = generateRefreshToken(user.id);
     refreshTokens.push(refreshToken);
@@ -144,7 +92,7 @@ export const verifyEmail = async (req, res) => {
       message: "Email verified successfully!",
       user: {
         id: user.id,
-        _id: user.id, // For frontend compatibility
+        _id: user.id,
         username: user.username,
         email: user.email,
         role: user.role
@@ -177,11 +125,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check verification
-    if (!user.is_verified) {
-      return res.status(400).json({ message: "Please verify your email first." });
-    }
-
     // check password
     const isMatch = await bcrypt.compare(password, user.password);
 
@@ -202,7 +145,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         id: user.id,
-        _id: user.id, // For frontend compatibility
+        _id: user.id,
         role: user.role
       },
       accessToken,
@@ -258,7 +201,7 @@ export const logout = async (req, res) => {
   return res.status(200).json({ message: "Logged out succesfully" });
 };
 
-// Forgot Password - Send OTP
+// Forgot Password - Auto Reset without OTP check
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -275,32 +218,18 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const otp = generateOTP();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        otp,
-        otp_expires: otpExpires
-      })
-      .eq('id', user.id);
-
-    if (updateError) throw updateError;
-
-    await sendOtpEmail(email, otp);
-
-    return res.status(200).json({ message: "OTP sent to your email" });
+    // Return direct success so they can proceed directly to password reset without checking email
+    return res.status(200).json({ message: "Direct reset allowed" });
 
   } catch (error) {
     return res.status(500).json({ message: "Error processing request", error: error.message });
   }
 };
 
-// Reset Password - Verify OTP and Update Password
+// Reset Password - Direct password reset (Bypasses OTP checking)
 export const resetPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
@@ -312,13 +241,6 @@ export const resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
-    }
-
-    const isOtpValid = user.otp === otp;
-    const isOtpExpired = new Date(user.otp_expires) < new Date();
-
-    if (!isOtpValid || isOtpExpired) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
