@@ -8,7 +8,12 @@ let refreshTokens = [];
 // register
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, password } = req.body;
+    const email = req.body.email?.trim()?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     // Check if user already exists
     const { data: existingUser, error: checkError } = await supabase
@@ -65,7 +70,11 @@ export const register = async (req, res) => {
 // Verify OTP (Fallback endpoint - auto succeeds to prevent frontend breakage)
 export const verifyEmail = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body.email?.trim()?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
@@ -109,7 +118,12 @@ export const verifyEmail = async (req, res) => {
 // login
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.trim()?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
@@ -204,7 +218,11 @@ export const logout = async (req, res) => {
 // Forgot Password - Auto Reset without OTP check
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = req.body.email?.trim()?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
@@ -218,7 +236,6 @@ export const forgotPassword = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Return direct success so they can proceed directly to password reset without checking email
     return res.status(200).json({ message: "Direct reset allowed" });
 
   } catch (error) {
@@ -229,7 +246,12 @@ export const forgotPassword = async (req, res) => {
 // Reset Password - Direct password reset (Bypasses OTP checking)
 export const resetPassword = async (req, res) => {
   try {
-    const { email, newPassword } = req.body;
+    const { newPassword } = req.body;
+    const email = req.body.email?.trim()?.toLowerCase();
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
 
     const { data: user, error: fetchError } = await supabase
       .from('users')
