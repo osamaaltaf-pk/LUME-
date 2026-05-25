@@ -12,18 +12,7 @@ import paymentRoutes from './routes/paymentRoutes.js'; // ADD THIS
 const app = express()
 app.use('/uploads', express.static('uploads'));
 
-// Verify Supabase config on request (Lightweight Vercel check)
-app.use((req, res, next) => {
-  const hasUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const hasKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-  if (!hasUrl || !hasKey) {
-    console.error('Database configuration is incomplete: missing Supabase credentials.');
-    return res.status(500).json({ message: 'Database configuration failed' });
-  }
-  next();
-});
-// Permissive CORS (Public API)
+// 1. Permissive CORS (Public API) - MUST BE FIRST so all requests (and error responses) carry CORS headers
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -34,6 +23,18 @@ app.use((req, res, next) => {
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+  next();
+});
+
+// 2. Verify Supabase config on request (Lightweight Vercel check)
+app.use((req, res, next) => {
+  const hasUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!hasUrl || !hasKey) {
+    console.error('Database configuration is incomplete: missing Supabase credentials.');
+    return res.status(500).json({ message: 'Database configuration failed' });
   }
   next();
 });
